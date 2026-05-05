@@ -53,6 +53,16 @@ const CreatePost = () => {
                     </button>
                 </div>
 
+                {/* File input always mounted so imageRef is never null */}
+                <input
+                    onChange={handleImageChange}
+                    ref={imageRef}
+                    hidden
+                    type="file"
+                    id="postImage"
+                    accept="image/*"
+                />
+
                 <form className="post-form" onSubmit={handleSubmit}>
                     {!previewImage ? (
                         <div className="upload-section">
@@ -65,14 +75,6 @@ const CreatePost = () => {
                             <label htmlFor="postImage" className="create-post-label">
                                 Select from computer
                             </label>
-                            <input
-                                onChange={handleImageChange}
-                                ref={imageRef}
-                                hidden
-                                type="file"
-                                id="postImage"
-                                accept="image/*"
-                            />
                         </div>
                     ) : (
                         <>
