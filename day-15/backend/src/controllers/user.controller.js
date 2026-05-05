@@ -45,8 +45,8 @@ async function followUserController(req,res){
     }
 
     const followRecord= await followModel.create({
-        follower:followerUsername,
-        followee:followeeUsername
+        follower: followerUsername.trim(),
+        followee: followeeUsername.trim()
     })
 
     res.status(201).json({
@@ -86,45 +86,49 @@ async function unfollowUserController(req,res){
 }
 
 async function respondToFollow(req,res){
-    const followee=req.user.username
-    const follower=req.params.username
+    const followee = (req.user.username || "").trim()
+    const follower = (req.params.username || "").trim()
 
-if(!["accepted", "rejected"].includes(req.body.status)){
-    return res.status(400).json({ message: "Invalid status" })
-}
-    console.log("Responding to follow request:", { follower, followee, status: req.body.status })
+    if(!["accepted", "rejected"].includes(req.body.status)){
+        return res.status(400).json({ message: "Invalid status" })
+    }
+
     const respond = await followModel.findOneAndUpdate({
         follower: { $regex: new RegExp(`^${follower}$`, 'i') },
-        followee: { $regex: new RegExp(`^${followee}$`, 'i') },
-        status: "pending"
+        followee: { $regex: new RegExp(`^${followee}$`, 'i') }
     },
     { status: req.body.status },
     { new: true }
 )
 
 if(!respond){
-    console.log("No pending request found for:", { follower, followee })
     return res.status(404).json({
-        message:"no pending request found"
+        message: "no request found"
     })
 }
 
-if (req.body.status === "accepted") {
-    const followerUser = await userModel.findOne({ username: follower })
-    const followeeUser = await userModel.findOne({ username: followee })
+    if (req.body.status === "accepted") {
+        // Find users case-insensitively to get their real IDs
+        const followerUser = await userModel.findOne({ username: { $regex: new RegExp(`^${follower}$`, 'i') } })
+        const followeeUser = await userModel.findOne({ username: { $regex: new RegExp(`^${followee}$`, 'i') } })
 
-    if (followerUser && followeeUser) {
-        await userModel.findByIdAndUpdate(followerUser._id, { $addToSet: { following: followeeUser._id } })
-        await userModel.findByIdAndUpdate(followeeUser._id, { $addToSet: { followers: followerUser._id } })
+        if (followerUser && followeeUser) {
+            await userModel.findByIdAndUpdate(followerUser._id, { $addToSet: { following: followeeUser._id } })
+            await userModel.findByIdAndUpdate(followeeUser._id, { $addToSet: { followers: followerUser._id } })
+        }
+    } else if (req.body.status === "rejected") {
+        const followerUser = await userModel.findOne({ username: { $regex: new RegExp(`^${follower}$`, 'i') } })
+        const followeeUser = await userModel.findOne({ username: { $regex: new RegExp(`^${followee}$`, 'i') } })
+
+        if (followerUser && followeeUser) {
+            await userModel.findByIdAndUpdate(followerUser._id, { $pull: { following: followeeUser._id } })
+            await userModel.findByIdAndUpdate(followeeUser._id, { $pull: { followers: followerUser._id } })
+        }
     }
-}
 
-
- res.status(200).json({
-    message:"status updated "
- })
-
-
+    res.status(200).json({
+        message: "status updated "
+    })
 }
 
 async function getAllUsersController(req, res) {
