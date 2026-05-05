@@ -92,16 +92,18 @@ async function respondToFollow(req,res){
 if(!["accepted", "rejected"].includes(req.body.status)){
     return res.status(400).json({ message: "Invalid status" })
 }
-    const respond =await followModel.findOneAndUpdate({
-        follower:follower,
-        followee:followee,
-        status:"pending"
+    console.log("Responding to follow request:", { follower, followee, status: req.body.status })
+    const respond = await followModel.findOneAndUpdate({
+        follower: { $regex: new RegExp(`^${follower}$`, 'i') },
+        followee: { $regex: new RegExp(`^${followee}$`, 'i') },
+        status: "pending"
     },
-{status:req.body.status},
-{new:true}
+    { status: req.body.status },
+    { new: true }
 )
 
 if(!respond){
+    console.log("No pending request found for:", { follower, followee })
     return res.status(404).json({
         message:"no pending request found"
     })
