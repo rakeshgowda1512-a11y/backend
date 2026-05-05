@@ -18,6 +18,11 @@ const Login = () => {
     e.preventDefault()
     setError(null)
 
+    if (!username.trim() || !password.trim()) {
+      setError("Please enter your username and password.")
+      return
+    }
+
     try {
       await handleLogin(username, password)
       navigate('/feed')
