@@ -39,11 +39,19 @@ export function useAuth() {
         }
     }
 
+    const handleRefreshUser = async () => {
+        try {
+            const fresh = await getme()
+            setuser(fresh.user)
+        } catch (err) {
+            console.error("Failed to refresh user", err)
+        }
+    }
+
     const handleUpdateProfile = async (imageFile) => {
-           const response = await updateProfile(imageFile)
-           const fresh = await getme()
-           setuser(fresh.user)
-       }
+        await updateProfile(imageFile)
+        await handleRefreshUser()
+    }
 
 
 
@@ -61,5 +69,5 @@ export function useAuth() {
 
 
 
-    return { user, loading, authLoading, handleLogin, handleRegister, handleUpdateProfile, handleLogout }
+    return { user, loading, authLoading, handleLogin, handleRegister, handleUpdateProfile, handleLogout, handleRefreshUser }
 }

@@ -1,14 +1,28 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { usePost } from '../../posts/hook/usePost'
+import Post from '../../posts/components/Post'
 import '../style/profile.scss'
 
 const Profile = () => {
     const { user, loading: authLoading, handleUpdateProfile } = useAuth()
-    const { feed, handleGetFeed } = usePost()
     const imageRef = useRef(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [selectedPost, setSelectedPost] = useState(null)
     const [uploading, setUploading] = useState(false)
+    
+    const { 
+        feed, 
+        handleGetFeed, 
+        handleLike, 
+        handleUnLike, 
+        handleDelete, 
+        comments, 
+        activePost, 
+        handleToggleComments, 
+        handleAddComment, 
+        handleDeleteComment 
+    } = usePost()
 
     useEffect(() => {
         if (!feed || feed.length === 0) {
@@ -92,7 +106,7 @@ const Profile = () => {
 
             <div className="profile-grid">
                 {userPosts.map(post => (
-                    <div className="grid-item" key={post._id}>
+                    <div className="grid-item" key={post._id} onClick={() => setSelectedPost(post)}>
                         <img src={post.imgUri} alt="Post" />
                         <div className="grid-item-overlay">
                             <div className="overlay-stat">
@@ -128,6 +142,33 @@ const Profile = () => {
                                     {uploading ? "Saving..." : "Save Changes"}
                                 </button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {selectedPost && (
+                <div className="post-view-modal">
+                    <div className="post-modal-content">
+                        <button className="close-modal" onClick={() => setSelectedPost(null)}>×</button>
+                        <div className="post-wrapper">
+                            <Post 
+                                user={selectedPost.user}
+                                post={selectedPost}
+                                loading={false}
+                                handleLike={handleLike}
+                                handleUnLike={handleUnLike}
+                                handleFollow={() => {}} // Not needed on own profile
+                                handleUnFollow={() => {}} // Not needed on own profile
+                                handleDelete={(id) => {
+                                    handleDelete(id)
+                                    setSelectedPost(null)
+                                }}
+                                comments={comments}
+                                activePost={activePost}
+                                handleToggleComments={handleToggleComments}
+                                handleAddComment={handleAddComment}
+                                handleDeleteComment={handleDeleteComment}
+                            />
                         </div>
                     </div>
                 </div>

@@ -1,9 +1,11 @@
 import { followUser,unFollowUser, respondToRequest,getAllUser,getFollowRequests } from "../services/follow.api";
 import { useContext  } from "react";
 import { FollowContext } from "../follow.context";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 export const useFollow = ()=>{
     const context=useContext(FollowContext)
+    const {handleRefreshUser} = useAuth()
     const {loading,setLoading,users,setUsers,requests,setRequests} = context
 
 
@@ -20,8 +22,9 @@ export const useFollow = ()=>{
 }
 
 const handleFollow =async(username,onSuccess)=>{
-  const data = await followUser(username)
+  await followUser(username)
    await handleGetUsers()
+   await handleRefreshUser()
     if (onSuccess) await onSuccess()
 }
 
@@ -29,8 +32,9 @@ const handleFollow =async(username,onSuccess)=>{
 
 
 const handleUnFollow =async(username,onSuccess)=>{
-  const data = await unFollowUser(username)
+  await unFollowUser(username)
    await handleGetUsers()
+   await handleRefreshUser()
     if (onSuccess) await onSuccess()
 }
 
@@ -47,8 +51,9 @@ const handleGetRequests = async () => {
 
 
 const handleRespond = async (username, status) =>{
-    const data = await respondToRequest(username,status)
+    await respondToRequest(username,status)
     await handleGetRequests()
+    await handleRefreshUser()
 }
 
    return{loading,users,requests,handleGetUsers,handleFollow,handleUnFollow,handleGetRequests,handleRespond}

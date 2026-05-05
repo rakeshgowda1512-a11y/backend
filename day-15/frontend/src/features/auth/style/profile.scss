@@ -293,6 +293,57 @@
         }
     }
 
+    /* Post View Modal */
+    .post-view-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        padding: 20px;
+
+        .post-modal-content {
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            background-color: var(--bg-main);
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+
+            .close-modal {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 2rem;
+                cursor: pointer;
+                z-index: 10;
+                line-height: 1;
+            }
+
+            .post-wrapper {
+                width: 100%;
+                overflow-y: auto;
+                
+                .post {
+                    border: none;
+                    margin: 0;
+                    width: 100%;
+                    background: transparent;
+                }
+            }
+        }
+    }
+
     @media (max-width: 768px) {
         padding: 16px;
         .profile-header {
@@ -323,5 +374,13 @@
         }
 
         .profile-grid { gap: 2px; .grid-item { border-radius: 0; } }
+
+        .post-view-modal {
+            padding: 0;
+            .post-modal-content {
+                max-height: 100vh;
+                border-radius: 0;
+            }
+        }
     }
 }
