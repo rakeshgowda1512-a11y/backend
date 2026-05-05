@@ -38,8 +38,17 @@ async function followUserController(req,res){
     })
 
     if(isAlreadyfollowing){
+        if (isAlreadyfollowing.status === 'rejected') {
+            isAlreadyfollowing.status = 'pending'
+            await isAlreadyfollowing.save()
+            return res.status(200).json({
+                message: `follow request re-sent to ${followeeUsername}`,
+                follow: isAlreadyfollowing
+            })
+        }
+
         return res.status(200).json({
-            message:`you are already following ${followeeUsername}`,
+            message:`you are already following or have a pending request with ${followeeUsername}`,
             follow:isAlreadyfollowing
         })
     }
@@ -142,12 +151,14 @@ async function getAllUsersController(req, res) {
                 followee: user.username
             })
 
-            if (!record) {
+            if (!record || record.status === 'rejected') {
                 user.followStatus = "none"
             } else if (record.status === 'pending') {
                 user.followStatus = "pending"
-            } else {
+            } else if (record.status === 'accepted') {
                 user.followStatus = "following"
+            } else {
+                user.followStatus = "none"
             }
 
             return user
