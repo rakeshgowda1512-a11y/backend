@@ -24,7 +24,7 @@ const Login = () => {
     }
 
     try {
-      await handleLogin(username, password)
+      await handleLogin(username.trim(), password.trim())
       navigate('/feed')
     } catch (err) {
       setError(err.message || "Invalid username or password")

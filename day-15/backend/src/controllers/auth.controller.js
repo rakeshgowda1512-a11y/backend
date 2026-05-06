@@ -68,6 +68,7 @@ res.status(201).json({
     let {username, password}=req.body
     
     if (username) username = username.trim()
+    if (password) password = password.trim()
 
     const user= await userModel.findOne({
         $or:[
