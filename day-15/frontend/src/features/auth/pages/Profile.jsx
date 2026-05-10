@@ -44,6 +44,7 @@ const Profile = () => {
         handleDeleteComment 
     } = usePost()
     const followContext = useContext(FollowContext)
+    const posts = userPosts || []
 
     useEffect(() => {
         async function fetchProfile() {
@@ -110,7 +111,6 @@ const Profile = () => {
         return <main style={{display: 'flex', justifyContent: 'center', marginTop: '50px', color: 'var(--text-primary)'}}><h1>Loading...</h1></main>
     }
 
-    const posts = userPosts || []
     const selectedPost = posts.find(p => p._id === selectedPostId)
 
     return (
