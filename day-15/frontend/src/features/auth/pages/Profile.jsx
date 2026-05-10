@@ -18,6 +18,8 @@ const Profile = () => {
         handleGetFeed, 
         handleLike, 
         handleUnLike, 
+        handleSave,
+        handleUnSave,
         handleDelete, 
         comments, 
         activePost, 
@@ -183,6 +185,8 @@ const Profile = () => {
                                         handleUnLike={handleUnLike}
                                         handleFollow={() => {}} 
                                         handleUnFollow={() => {}} 
+                                        handleSave={handleSave}
+                                        handleUnSave={handleUnSave}
                                         handleDelete={(id) => {
                                             handleDelete(id)
                                             setSelectedPost(null)

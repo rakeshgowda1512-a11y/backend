@@ -5,7 +5,7 @@ import { usePost } from '../hook/usePost'
 
 const Feed = () => {
 
-  const { feed, handleGetFeed, loading, handleLike, handleUnLike ,handleFollow, handleUnFollow, handleDelete, comments, activePost, handleToggleComments, handleAddComment,handleDeleteComment} = usePost()
+  const { feed, handleGetFeed, loading, handleLike, handleUnLike ,handleFollow, handleUnFollow, handleSave, handleUnSave, handleDelete, comments, activePost, handleToggleComments, handleAddComment,handleDeleteComment} = usePost()
   
   useEffect(() => {
     handleGetFeed()
@@ -35,6 +35,8 @@ const Feed = () => {
               handleUnLike={handleUnLike}
               handleFollow={handleFollow}   
               handleUnFollow={handleUnFollow}
+              handleSave={handleSave}
+              handleUnSave={handleUnSave}
               handleDelete={handleDelete}
               comments={comments}
               activePost={activePost}
