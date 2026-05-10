@@ -9,17 +9,17 @@ export const useFollow = ()=>{
     const {loading,setLoading,users,setUsers,requests,setRequests} = context
 
 
-    const handleGetUsers= async () => {
-
-    setLoading(true)
-
-    const data = await getAllUser()
-
-    setUsers(data.usersWithStatus)
-
-    setLoading(false)
-
-}
+    const handleGetUsers = async () => {
+        if (!users || users.length === 0) setLoading(true)
+        try {
+            const data = await getAllUser()
+            setUsers(data.usersWithStatus)
+        } catch (err) {
+            console.error("Failed to fetch users", err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
 const handleFollow =async(username,onSuccess)=>{
   await followUser(username)
@@ -38,16 +38,17 @@ const handleUnFollow =async(username,onSuccess)=>{
     if (onSuccess) await onSuccess()
 }
 
-const handleGetRequests = async () => {
-    
-    setLoading(true)
-
-    const data = await getFollowRequests()
-
-    setRequests(data.response)
-
-    setLoading(false)
-}
+    const handleGetRequests = async () => {
+        if (!requests || requests.length === 0) setLoading(true)
+        try {
+            const data = await getFollowRequests()
+            setRequests(data.response)
+        } catch (err) {
+            console.error("Failed to fetch requests", err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
 
 const handleRespond = async (requestId, status) =>{
