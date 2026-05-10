@@ -270,8 +270,8 @@ const Profile = () => {
                                         loading={false}
                                         handleLike={handleLike}
                                         handleUnLike={handleUnLike}
-                                        handleFollow={handleFollowPost} 
-                                        handleUnFollow={handleUnFollowPost} 
+                                        handleFollow={handleFollow} 
+                                        handleUnFollow={handleUnFollow} 
                                         handleSave={handleSave}
                                         handleUnSave={handleUnSave}
                                         handleDelete={(id) => {
