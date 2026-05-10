@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useParams } from 'react-router'
+import { useParams, useNavigate } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { usePost } from '../../posts/hook/usePost'
 import { getUserProfile } from '../../follow/services/follow.api'
@@ -8,6 +8,7 @@ import '../style/profile.scss'
 import { followUser, unFollowUser } from '../../follow/services/follow.api'
 
 const Profile = () => {
+    const navigate = useNavigate()
     const { user, loading: authLoading, handleUpdateProfile, handleRefreshUser } = useAuth()
     const imageRef = useRef(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -15,6 +16,7 @@ const Profile = () => {
     const [uploading, setUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState(null)
     const [localProfileImage, setLocalProfileImage] = useState(null)
+    const [listModal, setListModal] = useState({ isOpen: false, type: '', data: [] })
     
     const { username: urlUsername } = useParams()
     const [profileUser, setProfileUser] = useState(null)
@@ -144,10 +146,10 @@ const Profile = () => {
                         <div className="stat">
                             <span className="stat-count">{userPosts.length}</span> posts
                         </div>
-                        <div className="stat">
+                        <div className="stat" onClick={() => setListModal({ isOpen: true, type: 'Followers', data: profileUser?.followers || [] })} style={{cursor: 'pointer'}}>
                             <span className="stat-count">{profileUser?.followers?.length || 0}</span> followers
                         </div>
-                        <div className="stat">
+                        <div className="stat" onClick={() => setListModal({ isOpen: true, type: 'Following', data: profileUser?.following || [] })} style={{cursor: 'pointer'}}>
                             <span className="stat-count">{profileUser?.following?.length || 0}</span> following
                         </div>
                     </div>
@@ -166,11 +168,11 @@ const Profile = () => {
                     <span className="stat-count">{userPosts.length}</span>
                     <span>posts</span>
                 </div>
-                <div className="stat">
+                <div className="stat" onClick={() => setListModal({ isOpen: true, type: 'Followers', data: profileUser?.followers || [] })}>
                     <span className="stat-count">{profileUser?.followers?.length || 0}</span>
                     <span>followers</span>
                 </div>
-                <div className="stat">
+                <div className="stat" onClick={() => setListModal({ isOpen: true, type: 'Following', data: profileUser?.following || [] })}>
                     <span className="stat-count">{profileUser?.following?.length || 0}</span>
                     <span>following</span>
                 </div>
@@ -256,6 +258,34 @@ const Profile = () => {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {listModal.isOpen && (
+                <div className="list-modal-overlay" onClick={() => setListModal({ ...listModal, isOpen: false })}>
+                    <div className="list-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="list-modal-header">
+                            <h3>{listModal.type}</h3>
+                            <button className="close-btn" onClick={() => setListModal({ ...listModal, isOpen: false })}>✕</button>
+                        </div>
+                        <div className="list-modal-body">
+                            {listModal.data.length === 0 ? (
+                                <p className="no-data">No {listModal.type.toLowerCase()} yet</p>
+                            ) : (
+                                listModal.data.map((u) => (
+                                    <div className="list-item" key={u._id} onClick={() => {
+                                        setListModal({ ...listModal, isOpen: false });
+                                        navigate(`/profile/${u.username}`);
+                                    }}>
+                                        <img src={u.profileImage || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"} alt={u.username} />
+                                        <div className="item-info">
+                                            <span className="username">{u.username}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
