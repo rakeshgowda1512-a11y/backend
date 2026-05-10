@@ -62,6 +62,7 @@ const Profile = () => {
                 }
             }
             setProfileLoading(false)
+        }
         if (user || urlUsername) fetchProfile()
     }, [urlUsername, user])
 
