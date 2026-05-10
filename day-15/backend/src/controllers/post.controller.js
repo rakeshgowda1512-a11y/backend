@@ -42,15 +42,31 @@ async function getPostController(req,res){
 
     const userId=req.user.id
 
-    const posts= await Promise.all((await postModel.find({
-        user:userId
-    }).populate("user").lean()).map(async (post)=>{
-        const likesCount = await likeModel.countDocuments({post:post._id})
-        const isLiked = await likeModel.findOne({post:post._id, user:req.user.username})
-        post.likesCount = likesCount
-        post.isLiked = Boolean(isLiked)
+    const postsRaw = await postModel.find({
+        user: userId
+    }).sort({ createdAt: -1 }).populate("user").lean()
+
+    const postIds = postsRaw.map(p => p._id)
+    
+    const myLikes = await likeModel.find({
+        user: req.user.username,
+        post: { $in: postIds }
+    }).lean()
+    const myLikePostIds = new Set(myLikes.map(l => l.post.toString()))
+
+    const likeCounts = await likeModel.aggregate([
+        { $match: { post: { $in: postIds } } },
+        { $group: { _id: "$post", count: { $sum: 1 } } }
+    ])
+    const countsMap = {}
+    likeCounts.forEach(c => countsMap[c._id.toString()] = c.count)
+
+    const posts = postsRaw.map(post => {
+        const pid = post._id.toString()
+        post.likesCount = countsMap[pid] || 0
+        post.isLiked = myLikePostIds.has(pid)
         return post
-    }))
+    })
 
 
     res.status(200).json({
@@ -154,38 +170,57 @@ async function unlikePostController(req,res){
 async function getFeedController(req,res){
     console.log("Reached getFeedController, user:", req.user);
     try {
-        const user =req.user
+        const user = req.user
+        const postsRaw = await postModel.find().sort({ createdAt: -1 }).populate("user").lean()
 
-        const posts= await Promise.all((await postModel.find().populate("user").lean())
-        .map(async (post)=>{
-             const isLiked = await likeModel.findOne({
-                user:user.username,
-                post:post._id
-             })
+        // Get all post IDs
+        const postIds = postsRaw.map(p => p._id)
 
-             post.isLiked= Boolean( isLiked)
-             const likesCount = await likeModel.countDocuments({ post: post._id })
-             post.likesCount = likesCount
+        // Bulk fetch likes for current user
+        const myLikes = await likeModel.find({
+            user: user.username,
+            post: { $in: postIds }
+        }).lean()
+        const myLikePostIds = new Set(myLikes.map(l => l.post.toString()))
 
-                if (post.user) {
-                    const record = await followModel.findOne({
-                        follower: user.username,
-                        followee: post.user.username
-                    })
+        // Bulk fetch total like counts using aggregation
+        const likeCounts = await likeModel.aggregate([
+            { $match: { post: { $in: postIds } } },
+            { $group: { _id: "$post", count: { $sum: 1 } } }
+        ])
+        const countsMap = {}
+        likeCounts.forEach(c => countsMap[c._id.toString()] = c.count)
 
-                    if (!record) {
-                        post.followStatus = "none"
-                    } else if (record.status === "pending") {
-                        post.followStatus = "pending"
-                    } else {
-                        post.followStatus = "following"
-                    }
+        // Bulk fetch follow status
+        const followeeUsernames = [...new Set(postsRaw.filter(p => p.user).map(p => p.user.username))]
+        const followRecords = await followModel.find({
+            follower: user.username,
+            followee: { $in: followeeUsernames }
+        }).lean()
+        const followMap = {}
+        followRecords.forEach(r => followMap[r.followee] = r.status)
+
+        const posts = postsRaw.map(post => {
+            const pid = post._id.toString()
+            post.isLiked = myLikePostIds.has(pid)
+            post.likesCount = countsMap[pid] || 0
+
+            if (post.user) {
+                const status = followMap[post.user.username]
+                if (!status) {
+                    post.followStatus = "none"
+                } else if (status === "pending") {
+                    post.followStatus = "pending"
+                } else if (status === "accepted") {
+                    post.followStatus = "following"
                 } else {
                     post.followStatus = "none"
                 }
-
-             return post
-        }))
+            } else {
+                post.followStatus = "none"
+            }
+            return post
+        })
 
 
         res.status(200).json({
