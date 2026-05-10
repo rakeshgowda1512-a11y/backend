@@ -159,7 +159,7 @@ const Profile = () => {
                     </div>
 
                     <div className="profile-bio">
-                        <p style={{fontWeight: '600'}}>{profileUser?.username}</p>
+                        <p style={{fontWeight: '600'}}>Bio</p>
                         <p>{profileUser?.bio || "No bio yet"}</p>
                         {isOwnProfile && <div className="bio-name" style={{fontSize: '0.85rem', color: 'var(--text-secondary)'}}>{profileUser?.email}</div>}
                     </div>
