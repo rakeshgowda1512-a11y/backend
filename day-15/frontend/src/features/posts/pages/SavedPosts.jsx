@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { usePost } from '../hook/usePost'
 import Post from '../components/Post'
-import '../style/post.scss'
+import '../style/feed.scss'
 
 const SavedPosts = () => {
     const { loading, feed, handleGetSavedPosts, handleLike, handleUnLike, handleFollow, handleUnFollow, handleSave, handleUnSave, handleDelete, comments, activePost, handleToggleComments, handleAddComment, handleDeleteComment } = usePost()
