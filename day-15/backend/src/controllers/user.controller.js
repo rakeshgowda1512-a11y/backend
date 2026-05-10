@@ -139,36 +139,43 @@ async function respondToFollow(req,res){
 }
 
 async function getAllUsersController(req, res) {
+    try {
+        const me = req.user.username
+        const usersRaw = await userModel.find({ username: { $ne: me } }).select('username profileImage').lean()
+        const usernames = usersRaw.map(u => u.username)
 
-    const me = req.user.username
+        const followRecords = await followModel.find({
+            follower: { $regex: new RegExp(`^${me}$`, 'i') },
+            followee: { $in: usernames }
+        }).lean()
 
-    const users = await userModel.find({ username: { $ne: me } }).select('username profileImage').lean()
+        const followMap = {}
+        followRecords.forEach(r => {
+            followMap[r.followee] = r.status
+        })
 
-    const usersWithStatus = await Promise.all(
-        users.map(async (user) => {
-            const record = await followModel.findOne({
-                follower: { $regex: new RegExp(`^${me}$`, 'i') },
-                followee: user.username
-            })
-
-            if (!record || record.status === 'rejected') {
+        const usersWithStatus = usersRaw.map(user => {
+            const status = followMap[user.username]
+            if (!status || status === 'rejected') {
                 user.followStatus = "none"
-            } else if (record.status === 'pending') {
+            } else if (status === 'pending') {
                 user.followStatus = "pending"
-            } else if (record.status === 'accepted') {
+            } else if (status === 'accepted') {
                 user.followStatus = "following"
             } else {
                 user.followStatus = "none"
             }
-
             return user
         })
-    )
 
-    res.status(200).json({
-        message: "all users found",
-        usersWithStatus
-    })
+        res.status(200).json({
+            message: "all users found",
+            usersWithStatus
+        })
+    } catch (error) {
+        console.error("Error in getAllUsersController:", error)
+        res.status(500).json({ message: "Internal server error" })
+    }
 }
 
 async function getFollowRequestsController(req,res){
