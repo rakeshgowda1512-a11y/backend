@@ -48,8 +48,8 @@ async function registerController(req,res){
 
 res.cookie("token", token, {
     httpOnly: true,
-    secure: true,     
-    sameSite: "none",  
+    secure: process.env.NODE_ENV === 'production',     
+    sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",  
 });
 res.status(201).json({
     message:"user registered successfully ",
@@ -80,15 +80,15 @@ res.status(201).json({
 
     let {username, password}=validation.data
     username = username.trim()
-    password = password.trim()
+    // Do NOT trim password as it wasn't trimmed during registration
 
     const user= await userModel.findOne({
         $or:[
             {
-               username:username
+               username: { $regex: new RegExp(`^${username}$`, 'i') }
             },
             {
-               email:username
+               email: { $regex: new RegExp(`^${username}$`, 'i') }
             }
         ]
     }).select("+password")
@@ -118,8 +118,8 @@ res.status(201).json({
 
 res.cookie("token", token, {
     httpOnly: true,
-    secure: true,      
-    sameSite: "none",  
+    secure: process.env.NODE_ENV === 'production',      
+    sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",  
 });
 res.status(200).json({
     message:"user logged in",
@@ -163,8 +163,8 @@ async function getmeController(req,res){
 async function logoutController(req, res) {
     res.clearCookie("token", {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
     })
     res.status(200).json({ message: "logged out successfully" })
 }
