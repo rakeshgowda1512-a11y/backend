@@ -41,14 +41,16 @@ const Profile = () => {
 
     useEffect(() => {
         async function fetchProfile() {
-            setProfileLoading(true)
             const targetUsername = urlUsername || user?.username
             
             if (targetUsername) {
                 try {
-                    const data = await getUserProfile(targetUsername)
-                    setProfileUser(data.user)
-                    await handleGetUserPosts(targetUsername)
+                    // Fetch profile and posts in parallel
+                    const [profileData] = await Promise.all([
+                        getUserProfile(targetUsername),
+                        handleGetUserPosts(targetUsername)
+                    ])
+                    setProfileUser(profileData.user)
                 } catch (err) {
                     console.error("Failed to load profile", err)
                 }

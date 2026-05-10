@@ -10,25 +10,29 @@ export const usePost = ()=>{
 
     const {loading,setloading,post,setpost,feed,setfeed, comments, setcomments, activePost, setactivePost} = context
 
-    const handleGetFeed = async ()=>{
-
-        setloading(true)
-        const data= await getFeed()
-        setfeed(data.posts)
-        setloading(false)
- }
-
- const handleGetUserPosts = async (username) => {
-    setloading(true)
-    try {
-        const data = await getUserPosts(username)
-        setfeed(data.posts)
-    } catch (err) {
-        console.error("Failed to fetch user posts", err)
-    } finally {
-        setloading(false)
+    const handleGetFeed = async () => {
+        if (!feed || feed.length === 0) setloading(true)
+        try {
+            const data = await getFeed()
+            setfeed(data.posts)
+        } catch (err) {
+            console.error("Failed to load feed", err)
+        } finally {
+            setloading(false)
+        }
     }
- }
+
+    const handleGetUserPosts = async (username) => {
+        if (!feed || feed.length === 0) setloading(true)
+        try {
+            const data = await getUserPosts(username)
+            setfeed(data.posts)
+        } catch (err) {
+            console.error("Failed to fetch user posts", err)
+        } finally {
+            setloading(false)
+        }
+    }
 
  const handleCreatePost = async (imageFile,caption)=>{
     setloading(true)
@@ -129,17 +133,17 @@ export const usePost = ()=>{
     }
  }
 
- const handleGetSavedPosts = async () => {
-    setloading(true)
-    try {
-        const data = await getSavedPosts()
-        setfeed(data.posts)
-    } catch (err) {
-        console.error("Failed to fetch saved posts", err)
-    } finally {
-        setloading(false)
+    const handleGetSavedPosts = async () => {
+        if (!feed || feed.length === 0) setloading(true)
+        try {
+            const data = await getSavedPosts()
+            setfeed(data.posts)
+        } catch (err) {
+            console.error("Failed to fetch saved posts", err)
+        } finally {
+            setloading(false)
+        }
     }
- }
 
 
  const handleDelete = async (postId) => {

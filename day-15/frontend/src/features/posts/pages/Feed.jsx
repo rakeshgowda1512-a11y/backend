@@ -11,7 +11,7 @@ const Feed = () => {
     handleGetFeed()
   }, [])
 
-  if (loading || !feed) {
+  if (loading && (!feed || feed.length === 0)) {
     return (
       <div className='feed-page'>
         <div className="feed" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>

@@ -11,7 +11,7 @@ const People = () => {
         handleGetUsers()
     }, [])
 
-    if (loading || !users) {
+    if (loading && (!users || users.length === 0)) {
         return (
             <div className="people-page">
                 <div className="people-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
