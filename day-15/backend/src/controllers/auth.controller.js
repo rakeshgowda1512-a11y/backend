@@ -10,6 +10,12 @@ async function registerController(req,res){
     if (username) username = username.trim()
     if (email) email = email.trim()
 
+    if (!username || !email || !password) {
+        return res.status(400).json({
+            message: "All fields are required (username, email, password)"
+        })
+    }
+
     const isUserAlreadyExists=await userModel.findOne({
         $or:[
             {username},

@@ -18,6 +18,11 @@ const Register = () => {
     e.preventDefault()
     setError(null)
 
+    if (!username.trim() || !email.trim() || !password.trim()) {
+      setError("All fields are required.")
+      return
+    }
+
     try {
       await handleRegister(username, email, password)
       navigate('/')

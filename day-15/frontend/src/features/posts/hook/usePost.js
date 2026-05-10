@@ -1,9 +1,12 @@
 import { getFeed,createPost,likepost,unlikepost,deletepost,addcomment,getcomment,deletecomment } from "../services/post.api";
+import { followUser, unFollowUser } from "../../follow/services/follow.api";
 import { useContext  } from "react";
 import { PostContext } from "../post.context";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 export const usePost = ()=>{
     const context= useContext(PostContext)
+    const { handleRefreshUser } = useAuth()
 
     const {loading,setloading,post,setpost,feed,setfeed, comments, setcomments, activePost, setactivePost} = context
 
@@ -22,14 +25,62 @@ export const usePost = ()=>{
     setloading(false)
  }
 
- const handleLike=async (post)=>{
-    const data=await likepost(post)
-    await handleGetFeed()
+ const handleLike=async (postId)=>{
+    // Optimistic update
+    setfeed(prevFeed => prevFeed.map(p => 
+        p._id === postId ? { ...p, isLiked: true, likesCount: (p.likesCount || 0) + 1 } : p
+    ))
+    
+    try {
+        await likepost(postId)
+    } catch (err) {
+        console.error("Failed to like post", err)
+        await handleGetFeed() // Revert on error
+    }
  }
 
- const handleUnLike=async (post)=>{
-    const data=await unlikepost(post)
-    await handleGetFeed()
+ const handleUnLike=async (postId)=>{
+    // Optimistic update
+    setfeed(prevFeed => prevFeed.map(p => 
+        p._id === postId ? { ...p, isLiked: false, likesCount: Math.max(0, (p.likesCount || 0) - 1) } : p
+    ))
+    
+    try {
+        await unlikepost(postId)
+    } catch (err) {
+        console.error("Failed to unlike post", err)
+        await handleGetFeed() // Revert on error
+    }
+ }
+
+ const handleFollow = async (username) => {
+    // Optimistic update for all posts by this user
+    setfeed(prevFeed => prevFeed.map(p => 
+        p.user?.username === username ? { ...p, followStatus: 'pending' } : p
+    ))
+    
+    try {
+        await followUser(username)
+        await handleRefreshUser()
+    } catch (err) {
+        console.error("Failed to follow", err)
+        await handleGetFeed()
+    }
+ }
+
+ const handleUnFollow = async (username) => {
+    // Optimistic update
+    setfeed(prevFeed => prevFeed.map(p => 
+        p.user?.username === username ? { ...p, followStatus: 'none' } : p
+    ))
+    
+    try {
+        await unFollowUser(username)
+        await handleRefreshUser()
+    } catch (err) {
+        console.error("Failed to unfollow", err)
+        await handleGetFeed()
+    }
  }
 
 
@@ -59,6 +110,6 @@ const handleDeleteComment = async (commentId) => {
     setcomments(comments.filter(c => c._id !== commentId))
 }
 
-    return {loading,post,feed,handleGetFeed,handleCreatePost,handleLike,handleUnLike,handleDelete,handleToggleComments,handleAddComment,comments, activePost,handleDeleteComment}
+    return {loading,post,feed,handleGetFeed,handleCreatePost,handleLike,handleUnLike,handleFollow,handleUnFollow,handleDelete,handleToggleComments,handleAddComment,comments, activePost,handleDeleteComment}
 
 }

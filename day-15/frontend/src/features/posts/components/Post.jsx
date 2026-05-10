@@ -5,7 +5,7 @@ import { AuthContext } from '../../auth/auth.context'
 const Post = ({ user, post, loading, handleLike, handleUnLike, handleFollow, handleUnFollow, handleDelete, comments, activePost, handleToggleComments, handleAddComment,handleDeleteComment }) => {
 
   const { user: loggedInUser } = useContext(AuthContext)
-  const isOwnPost = loggedInUser?.username === user.username
+  const isOwnPost = loggedInUser?.username === user?.username
   const [commentText, setCommentText] = useState("") 
   
   const handleSubmitComment = async (e) => {
@@ -20,9 +20,9 @@ const Post = ({ user, post, loading, handleLike, handleUnLike, handleFollow, han
 
       <div className="user">
         <div className="img-wrapper">
-          <img src={user.profileImage || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"} alt={user.username} />
+          <img src={user?.profileImage || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"} alt={user?.username || "user"} />
         </div>
-        <span className="username-text">{user.username}</span>
+        <span className="username-text">{user?.username || "Unknown User"}</span>
 
         {!isOwnPost && (
           <>
@@ -94,12 +94,12 @@ const Post = ({ user, post, loading, handleLike, handleUnLike, handleFollow, han
       </div>
 
       <div className="likes-count">
-        {post.likes?.length || 0} likes
+        {post.likesCount || 0} likes
       </div>
 
       <div className="bottom">
         <p className='caption'>
-          <span className="caption-username">{user.username}</span>
+          <span className="caption-username">{user?.username || "Unknown User"}</span>
           {post.caption}
         </p>
       </div>

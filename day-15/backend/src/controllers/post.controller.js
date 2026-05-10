@@ -42,9 +42,15 @@ async function getPostController(req,res){
 
     const userId=req.user.id
 
-    const posts= await postModel.find({
+    const posts= await Promise.all((await postModel.find({
         user:userId
-    })
+    }).populate("user").lean()).map(async (post)=>{
+        const likesCount = await likeModel.countDocuments({post:post._id})
+        const isLiked = await likeModel.findOne({post:post._id, user:req.user.username})
+        post.likesCount = likesCount
+        post.isLiked = Boolean(isLiked)
+        return post
+    }))
 
 
     res.status(200).json({
@@ -82,9 +88,14 @@ async function getPostDetailsController(req,res){
         })
     }
 
+    const postObj = post.toObject()
+    postObj.likesCount = await likeModel.countDocuments({post:post._id})
+    const isLiked = await likeModel.findOne({post:post._id, user:req.user.username})
+    postObj.isLiked = Boolean(isLiked)
+
    return res.status(200).json({
         message:"post fetched successfully",
-        post
+        post: postObj
     })
 
 
@@ -141,39 +152,53 @@ async function unlikePostController(req,res){
 }
 
 async function getFeedController(req,res){
+    console.log("Reached getFeedController, user:", req.user);
+    try {
+        const user =req.user
 
-    const user =req.user
+        const posts= await Promise.all((await postModel.find().populate("user").lean())
+        .map(async (post)=>{
+             const isLiked = await likeModel.findOne({
+                user:user.username,
+                post:post._id
+             })
 
-    const posts= await Promise.all((await postModel.find().populate("user").lean())
-    .map(async (post)=>{
-         const isLiked = await likeModel.findOne({
-            user:user.username,
-            post:post._id
-         })
+             post.isLiked= Boolean( isLiked)
+             const likesCount = await likeModel.countDocuments({ post: post._id })
+             post.likesCount = likesCount
 
-         post.isLiked= Boolean( isLiked)
-           const record = await followModel.findOne({
-                follower: user.username,
-                followee: post.user.username
-            })
+                if (post.user) {
+                    const record = await followModel.findOne({
+                        follower: user.username,
+                        followee: post.user.username
+                    })
 
-            if (!record) {
-                post.followStatus = "none"
-            } else if (record.status === "pending") {
-                post.followStatus = "pending"
-            } else {
-                post.followStatus = "following"
-            }
+                    if (!record) {
+                        post.followStatus = "none"
+                    } else if (record.status === "pending") {
+                        post.followStatus = "pending"
+                    } else {
+                        post.followStatus = "following"
+                    }
+                } else {
+                    post.followStatus = "none"
+                }
 
-         return post
-    }))
+             return post
+        }))
 
 
-    res.status(200).json({
-        message:"posts fetched successfully",
-        posts
-    })
-
+        res.status(200).json({
+            message:"posts fetched successfully",
+            posts
+        })
+    } catch (error) {
+        console.error("Error in getFeedController:", error)
+        res.status(500).json({
+            message: "Internal server error",
+            error: error.message
+        })
+    }
 }
 
 
