@@ -153,9 +153,9 @@ const Profile = () => {
                     </div>
 
                     <div className="profile-bio">
+                        <p style={{fontWeight: '600'}}>{profileUser?.username}</p>
                         <p>{profileUser?.bio || "No bio yet"}</p>
-                    </div>
-                        <div className="bio-name">{user?.email}</div>
+                        {isOwnProfile && <div className="bio-name" style={{fontSize: '0.85rem', color: 'var(--text-secondary)'}}>{profileUser?.email}</div>}
                     </div>
                 </div>
             </header>
@@ -167,11 +167,11 @@ const Profile = () => {
                     <span>posts</span>
                 </div>
                 <div className="stat">
-                    <span className="stat-count">{user?.followers?.length || 0}</span>
+                    <span className="stat-count">{profileUser?.followers?.length || 0}</span>
                     <span>followers</span>
                 </div>
                 <div className="stat">
-                    <span className="stat-count">{user?.following?.length || 0}</span>
+                    <span className="stat-count">{profileUser?.following?.length || 0}</span>
                     <span>following</span>
                 </div>
             </div>
