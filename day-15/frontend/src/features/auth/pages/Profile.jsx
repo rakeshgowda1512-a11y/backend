@@ -12,7 +12,7 @@ const Profile = () => {
     const { user, loading: authLoading, handleUpdateProfile, handleRefreshUser } = useAuth()
     const imageRef = useRef(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [selectedPost, setSelectedPost] = useState(null)
+    const [selectedPostId, setSelectedPostId] = useState(null)
     const [uploading, setUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState(null)
     const [localProfileImage, setLocalProfileImage] = useState(null)
@@ -100,6 +100,7 @@ const Profile = () => {
     }
 
     const posts = userPosts || []
+    const selectedPost = posts.find(p => p._id === selectedPostId)
 
     return (
         <div className="profile-page">
@@ -207,7 +208,7 @@ const Profile = () => {
 
             <div className="profile-grid">
                 {posts.map(post => (
-                    <div className="grid-item" key={post._id} onClick={() => setSelectedPost(post)}>
+                    <div className="grid-item" key={post._id} onClick={() => setSelectedPostId(post._id)}>
                         <img src={post.imgUri ? `${post.imgUri}?tr=w-300,h-300,fo-auto` : ""} alt="Post" />
                         <div className="grid-item-overlay">
                             <div className="overlay-stat">
@@ -271,9 +272,9 @@ const Profile = () => {
                 </div>
             )}
             {selectedPost && (
-                <div className="post-view-modal" onClick={() => setSelectedPost(null)}>
+                <div className="post-view-modal" onClick={() => setSelectedPostId(null)}>
                     <div className="post-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-modal" onClick={() => setSelectedPost(null)}>×</button>
+                        <button className="close-modal" onClick={() => setSelectedPostId(null)}>×</button>
                         <div className="feed-page" style={{padding: 0, width: '100%'}}>
                             <div className="feed" style={{maxWidth: '100%'}}>
                                 <div className="posts">
@@ -289,7 +290,7 @@ const Profile = () => {
                                         handleUnSave={handleUnSave}
                                         handleDelete={(id) => {
                                             handleDelete(id)
-                                            setSelectedPost(null)
+                                            setSelectedPostId(null)
                                         }}
                                         comments={comments}
                                         activePost={activePost}
