@@ -82,13 +82,16 @@ res.status(201).json({
     username = username.trim()
     // Do NOT trim password as it wasn't trimmed during registration
 
+    // Escape special characters for regex
+    const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     const user= await userModel.findOne({
         $or:[
             {
-               username: { $regex: new RegExp(`^${username}$`, 'i') }
+               username: { $regex: new RegExp(`^${escapedUsername}$`, 'i') }
             },
             {
-               email: { $regex: new RegExp(`^${username}$`, 'i') }
+               email: { $regex: new RegExp(`^${escapedUsername}$`, 'i') }
             }
         ]
     }).select("+password")
