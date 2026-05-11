@@ -1,5 +1,15 @@
 {
+  "name": "insta-shadow-fullstack",
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "build:frontend": "npm run build --prefix frontend && mv frontend/dist backend/public",
+    "start": "NODE_ENV=production node backend/server.js",
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+    "docker:build": "docker build -t insta-shadow .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env insta-shadow"
+  },
   "devDependencies": {
-    "@types/node": "^25.6.0"
+    "concurrently": "^8.2.2"
   }
 }
