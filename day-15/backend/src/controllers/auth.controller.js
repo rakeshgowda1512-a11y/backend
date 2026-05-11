@@ -185,37 +185,14 @@ async function logoutController(req, res) {
 
 async function deleteUserController(req, res) {
     const userId = req.user.id
-    const username = req.user.username
 
     try {
-        // 1. Get all post IDs by this user for cleanup
-        const userPosts = await postModel.find({ user: userId }).select('_id').lean()
-        const postIds = userPosts.map(p => p._id)
+        // This findByIdAndDelete will trigger the 'post' middleware in user.model.js
+        const deletedUser = await userModel.findByIdAndDelete(userId)
 
-        // 2. Cascade delete for User's Posts (likes/comments/saves on those posts)
-        await Promise.all([
-            postModel.deleteMany({ user: userId }),
-            likeModel.deleteMany({ post: { $in: postIds } }),
-            commentModel.deleteMany({ post: { $in: postIds } }),
-            saveModel.deleteMany({ post: { $in: postIds } })
-        ])
-
-        // 3. Delete interactions BY this user on OTHER posts
-        await Promise.all([
-            likeModel.deleteMany({ user: username }),
-            commentModel.deleteMany({ user: username }),
-            saveModel.deleteMany({ user: username })
-        ])
-
-        // 4. Cleanup Follows
-        await Promise.all([
-            followModel.deleteMany({ $or: [{ follower: username }, { followee: username }] }),
-            // Remove this user from others' followers/following arrays
-            userModel.updateMany({}, { $pull: { followers: userId, following: userId } })
-        ])
-
-        // 5. Delete the User document itself
-        await userModel.findByIdAndDelete(userId)
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" })
+        }
 
         // Clear cookie
         res.clearCookie("token", {
