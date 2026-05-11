@@ -15,8 +15,13 @@ export function AuthProvider({children}){
         async function loadUser() {
             try {
                 const response = await getme()
-                setuser(response.user)
-                localStorage.setItem('insta_user', JSON.stringify(response.user))
+                if (response.user) {
+                    setuser(response.user)
+                    localStorage.setItem('insta_user', JSON.stringify(response.user))
+                } else {
+                    setuser(null)
+                    localStorage.removeItem('insta_user')
+                }
             } catch (err) {
                 setuser(null)
                 localStorage.removeItem('insta_user')

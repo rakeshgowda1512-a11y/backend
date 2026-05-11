@@ -139,26 +139,32 @@ res.status(200).json({
 }
 
 async function getmeController(req,res){
-    const userId=req.user.id
-
-    const user= await userModel.findById(userId).select("-password").lean()
-
-    if(!user){
-        return res.status(404).json({
-            message:"user not found"
-        })
+    const token = req.cookies.token
+    if (!token) {
+        return res.status(200).json({ user: null })
     }
 
-    res.status(200).json({
-        user:{
-            username:user.username,
-            email:user.email,
-            bio:user.bio,
-            profileImage:user.profileImage,
-            followers:user.followers || [],
-            following:user.following || []
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const user = await userModel.findById(decoded.id).select("-password").lean()
+        
+        if (!user) {
+            return res.status(200).json({ user: null })
         }
-    })
+
+        res.status(200).json({
+            user: {
+                username: user.username,
+                email: user.email,
+                bio: user.bio,
+                profileImage: user.profileImage,
+                followers: user.followers || [],
+                following: user.following || []
+            }
+        })
+    } catch (err) {
+        res.status(200).json({ user: null })
+    }
 }
 
 
