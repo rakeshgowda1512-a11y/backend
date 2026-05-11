@@ -94,7 +94,7 @@ res.status(201).json({
                email: { $regex: new RegExp(`^${escapedUsername}$`, 'i') }
             }
         ]
-    }).select("+password")
+    }).select("+password").lean()
 
     if(!user){
         return res.status(404).json({
@@ -141,7 +141,7 @@ res.status(200).json({
 async function getmeController(req,res){
     const userId=req.user.id
 
-    const user= await userModel.findById(userId)
+    const user= await userModel.findById(userId).select("-password").lean()
 
     if(!user){
         return res.status(404).json({

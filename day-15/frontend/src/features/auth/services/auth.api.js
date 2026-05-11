@@ -4,12 +4,14 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api= axios.create({
     baseURL: `${API_URL}/api/auth`,
-    withCredentials:true
+    withCredentials:true,
+    timeout: 10000 // 10s timeout
 })
 
 const userApi = axios.create({
     baseURL: `${API_URL}/api/users`,
-    withCredentials: true
+    withCredentials: true,
+    timeout: 15000 // 15s timeout for uploads
 })
 
 

@@ -13,6 +13,7 @@ export function useAuth() {
         try {
             const response = await login(username, password)
             setuser(response.user)
+            localStorage.setItem('insta_user', JSON.stringify(response.user))
             return response
         } catch (err) {
             const message =
@@ -29,6 +30,7 @@ export function useAuth() {
         try {
             const response = await register(username, email, password)
             setuser(response.user)
+            localStorage.setItem('insta_user', JSON.stringify(response.user))
         } catch (err) {
             const message =
                 err?.response?.data?.message ||
@@ -43,6 +45,7 @@ export function useAuth() {
         try {
             const fresh = await getme()
             setuser(fresh.user)
+            localStorage.setItem('insta_user', JSON.stringify(fresh.user))
         } catch (err) {
             console.error("Failed to refresh user", err)
         }
@@ -63,6 +66,7 @@ export function useAuth() {
            
         } finally {
             setuser(null)
+            localStorage.removeItem('insta_user')
         }
     }
 
