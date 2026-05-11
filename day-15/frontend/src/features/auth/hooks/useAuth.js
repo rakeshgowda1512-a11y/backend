@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import axios from "axios";
 import { AuthContext } from "../auth.context";
 import { login, register, getme, updateProfile, logout } from "../services/auth.api"
 
@@ -70,8 +71,18 @@ export function useAuth() {
         }
     }
 
+    const handleDeleteAccount = async () => {
+        if (!window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) return
+        try {
+            await axios.delete(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/auth/delete-account`, { withCredentials: true })
+            setuser(null)
+            localStorage.removeItem('insta_user')
+        } catch (err) {
+            console.error("Delete account failed", err)
+            throw new Error(err?.response?.data?.message || "Failed to delete account")
+        }
+    }
 
 
-
-    return { user, loading, authLoading, handleLogin, handleRegister, handleUpdateProfile, handleLogout, handleRefreshUser }
+    return { user, loading, authLoading, handleLogin, handleRegister, handleUpdateProfile, handleLogout, handleRefreshUser, handleDeleteAccount }
 }

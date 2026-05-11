@@ -11,5 +11,6 @@ authRouter.post('/login',authController.loginController)
 authRouter.get('/get-me', authController.getmeController)
 
 authRouter.post('/logout', authController.logoutController)
+authRouter.delete('/delete-account', identifyUser, authController.deleteUserController)
 
 module.exports=authRouter

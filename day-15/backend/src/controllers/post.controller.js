@@ -294,6 +294,13 @@ async function DeletePostController(req,res){
     }
 
     await postModel.findByIdAndDelete(postId)
+    
+    // Cascade delete: Remove likes, comments, and saves related to this post
+    await Promise.all([
+        likeModel.deleteMany({ post: postId }),
+        commentModel.deleteMany({ post: postId }),
+        saveModel.deleteMany({ post: postId })
+    ])
 
 
     return res.status(200).json({

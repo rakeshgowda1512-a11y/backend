@@ -9,7 +9,7 @@ import { FollowContext } from '../../follow/follow.context'
 
 const Profile = () => {
     const navigate = useNavigate()
-    const { user, loading: authLoading, handleUpdateProfile, handleRefreshUser } = useAuth()
+    const { user, loading: authLoading, handleUpdateProfile, handleRefreshUser, handleDeleteAccount } = useAuth()
     const imageRef = useRef(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [selectedPostId, setSelectedPostId] = useState(null)
@@ -265,6 +265,31 @@ const Profile = () => {
 
                                 <button type="submit" className="button primary-button save-btn" disabled={uploading}>
                                     {uploading ? "Saving..." : "Save Changes"}
+                                </button>
+                                
+                                <div style={{width: '100%', height: '1px', background: 'var(--border-light)', margin: '24px 0'}}></div>
+                                
+                                <button 
+                                    type="button" 
+                                    className="delete-account-btn"
+                                    onClick={async () => {
+                                        try {
+                                            await handleDeleteAccount()
+                                            navigate('/login')
+                                        } catch (err) {
+                                            alert(err.message)
+                                        }
+                                    }}
+                                    style={{
+                                        background: 'transparent',
+                                        color: '#ed4956',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    Delete Account
                                 </button>
                             </form>
                         </div>

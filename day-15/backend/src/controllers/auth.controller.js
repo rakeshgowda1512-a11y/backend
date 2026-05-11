@@ -2,6 +2,11 @@ const userModel=require('../models/user.model')
 const bcrypt=require('bcryptjs')
 const jwt=require('jsonwebtoken')
 const { registerSchema, loginSchema } = require('../validators/auth.validator')
+const postModel = require('../models/post.model')
+const likeModel = require('../models/like.model')
+const commentModel = require('../models/comment.model')
+const saveModel = require('../models/save.model')
+const followModel = require('../models/follow.model')
 
 async function registerController(req,res){
     const validation = registerSchema.safeParse(req.body)
@@ -178,11 +183,60 @@ async function logoutController(req, res) {
     res.status(200).json({ message: "logged out successfully" })
 }
 
+async function deleteUserController(req, res) {
+    const userId = req.user.id
+    const username = req.user.username
+
+    try {
+        // 1. Get all post IDs by this user for cleanup
+        const userPosts = await postModel.find({ user: userId }).select('_id').lean()
+        const postIds = userPosts.map(p => p._id)
+
+        // 2. Cascade delete for User's Posts (likes/comments/saves on those posts)
+        await Promise.all([
+            postModel.deleteMany({ user: userId }),
+            likeModel.deleteMany({ post: { $in: postIds } }),
+            commentModel.deleteMany({ post: { $in: postIds } }),
+            saveModel.deleteMany({ post: { $in: postIds } })
+        ])
+
+        // 3. Delete interactions BY this user on OTHER posts
+        await Promise.all([
+            likeModel.deleteMany({ user: username }),
+            commentModel.deleteMany({ user: username }),
+            saveModel.deleteMany({ user: username })
+        ])
+
+        // 4. Cleanup Follows
+        await Promise.all([
+            followModel.deleteMany({ $or: [{ follower: username }, { followee: username }] }),
+            // Remove this user from others' followers/following arrays
+            userModel.updateMany({}, { $pull: { followers: userId, following: userId } })
+        ])
+
+        // 5. Delete the User document itself
+        await userModel.findByIdAndDelete(userId)
+
+        // Clear cookie
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",
+        })
+
+        res.status(200).json({ message: "Account and all related data deleted successfully" })
+    } catch (err) {
+        console.error("Delete account failed", err)
+        res.status(500).json({ message: "Failed to delete account" })
+    }
+}
+
 
 
 module.exports={
     registerController,
     loginController,
     getmeController,
-    logoutController
+    logoutController,
+    deleteUserController
 }
